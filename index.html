@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Вход в опросник</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: "Georgia", serif;
+      background: #ffffff;
+      color: #2a2a2a;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #f9f9f9;
+      padding: 1.5rem;
+      text-align: center;
+      border-bottom: 1px solid #d0d0d0;
+    }
+    header h1 {
+      color: #007394;
+      margin: 0;
+      font-size: 1.8rem;
+    }
+    header h2 {
+      color: #444;
+      margin-top: 0.3rem;
+      font-weight: normal;
+      font-size: 1rem;
+    }
+    main {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 60vh;
+    }
+    .login-box {
+      background: #f5f5f5;
+      border: 1px solid #ccc;
+      padding: 2rem;
+      border-radius: 10px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .login-box h3 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      color: #007394;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+    }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 0.6rem;
+      margin-bottom: 1.2rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    button {
+      width: 100%;
+      background: #007394;
+      color: white;
+      border: none;
+      padding: 0.9rem;
+      border-radius: 5px;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005c73;
+    }
+    footer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #888;
+      padding: 1rem;
+      border-top: 1px solid #e0e0e0;
+    }
+    footer a {
+      color: #888;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Институт физиологии им. А.Б. Иванова</h1>
+  <h2>Доступ к закрытому опроснику</h2>
+</header>
+
+<main>
+  <div class="login-box">
+    <h3>Вход для участников</h3>
+    <form id="login-form">
+      <label for="username">Ваш идентификатор</label>
+      <input type="text" id="username" name="username" required>
+
+      <label for="password">Пароль</label>
+      <input type="password" id="password" name="password">
+
+      <button type="submit">Войти</button>
+    </form>
+  </div>
+</main>
+
+<footer>
+  © 2020 Институт физиологии им. А.Б. Иванова. Лаборатория физиологии зрения.  
+  <a href="https://www.infran.ru/" target="_blank">www.infran.ru</a>
+</footer>
+
+<script>
+  document.getElementById("login-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    fetch("loginData.json")
+      .then((res) => res.json())
+      .then((users) => {
+        const found = users.find((user) => user.login === username && user.password === password);
+
+        if (found) {
+          if (username === "admin") {
+            window.location.href = "admin.html";
+          } else {
+            localStorage.setItem("userLogin", username);
+            window.location.href = "instructions.html";
+          }
+        } else {
+          alert("Неверный логин или пароль");
+        }
+      })
+      .catch(() => alert("Ошибка загрузки базы пользователей"));
+  });
+</script>
+
+</body>
+</html>

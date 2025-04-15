@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Инструкция</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: "Georgia", serif;
+      background: #ffffff;
+      color: #2a2a2a;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #f9f9f9;
+      padding: 1.5rem;
+      text-align: center;
+      border-bottom: 1px solid #d0d0d0;
+    }
+
+    header h1 {
+      color: #007394;
+      margin: 0;
+      font-size: 1.8rem;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .instruction-box {
+      max-width: 700px;
+      background: #f5f5f5;
+      padding: 2rem;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      font-size: 1.1rem;
+      line-height: 1.7;
+    }
+
+    .instruction-box p {
+      margin-bottom: 1.2rem;
+      text-align: justify;
+    }
+
+    .instruction-box form {
+      text-align: center;
+      margin-top: 2rem;
+    }
+
+    .instruction-box button {
+      background: #007394;
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 5px;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .instruction-box button:hover {
+      background: #005c73;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #888;
+      padding: 1rem;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    footer a {
+      color: #888;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Институт физиологии им. А.Б. Иванова</h1>
+</header>
+
+<main>
+  <div class="instruction-box">
+    <p>Вы собираетесь пройти серию коротких вопросов, направленных на исследование когнитивных процессов.</p>
+    <p>Пожалуйста, читайте вопросы внимательно и отвечайте честно. На выполнение задания нет строгих ограничений по времени, однако не задерживайтесь слишком долго на одном вопросе.</p>
+    <p>Если какой-то вопрос вызывает затруднение — дайте наиболее подходящий ответ или пропустите, если это предусмотрено.</p>
+
+    <form action="questionnaire.html">
+      <button type="submit">Начать</button>
+    </form>
+  </div>
+</main>
+
+<footer>
+  © 2020 Институт физиологии им. А.Б. Иванова. Лаборатория физиологии зрения.  
+  <a href="https://www.infran.ru/" target="_blank">www.infran.ru</a>
+</footer>
+
+</body>
+</html>
