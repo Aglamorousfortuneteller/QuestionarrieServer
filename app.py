@@ -1,34 +1,34 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import json
 import os
 import csv
 from datetime import datetime
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app)
 
-# === Сохранение ответов ===
+@app.route("/")
+def index():
+    return send_from_directory('.', 'index.html')
+
 @app.route("/submit", methods=["POST"])
 def save_response():
     entry = request.json
     entry["timestamp"] = datetime.now().isoformat()
 
-    # === JSON ===
     if not os.path.exists("responses.json") or os.path.getsize("responses.json") == 0:
         data = []
     else:
         with open("responses.json", "r", encoding="utf-8") as f:
             data = json.load(f)
 
-    # Заменяем старую запись
     data = [e for e in data if e["login"] != entry["login"]]
     data.append(entry)
 
     with open("responses.json", "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-    # === CSV (одна строка на пользователя) ===
     csv_file = "responses.csv"
     write_header = not os.path.exists(csv_file) or os.path.getsize(csv_file) == 0
 
@@ -54,7 +54,7 @@ def save_response():
 
     return jsonify({"status": "ok"})
 
-# === Добавление нового пользователя ===
+
 @app.route("/add-user", methods=["POST"])
 def add_user():
     new_user = request.json
