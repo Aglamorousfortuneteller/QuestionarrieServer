@@ -1,60 +1,42 @@
-from flask import Flask, request, jsonify, send_from_directory, make_response
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-import json
+import psycopg2
 import os
-import csv
 from datetime import datetime
 
+# Flask setup
 app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app)
+
+# PostgreSQL connection config
+DATABASE_URL = os.environ.get("DATABASE_URL") or "postgresql://questionnaire_db_26yt_user:U0G9XSuvfPNWmG3bDofMPJu3tzFwcBAO@dpg-cvvomg3uibrs73blgfb0-a/questionnaire_db_26yt"
+
+# Ensure the user table exists
+def init_db():
+    with psycopg2.connect(DATABASE_URL) as conn:
+        with conn.cursor() as cur:
+            cur.execute('''
+                CREATE TABLE IF NOT EXISTS users (
+                    login TEXT PRIMARY KEY,
+                    password TEXT NOT NULL
+                );
+            ''')
+            # Ensure admin exists
+            cur.execute("SELECT * FROM users WHERE login='admin'")
+            if not cur.fetchone():
+                cur.execute("INSERT INTO users (login, password) VALUES (%s, %s)", ('admin', 'letmein'))
+        conn.commit()
 
 @app.route("/")
 def index():
     return send_from_directory('.', 'index.html')
 
-
 @app.route("/submit", methods=["POST"])
 def save_response():
     entry = request.json
     entry["timestamp"] = datetime.now().isoformat()
-
-    if not os.path.exists("responses.json") or os.path.getsize("responses.json") == 0:
-        data = []
-    else:
-        with open("responses.json", "r", encoding="utf-8") as f:
-            data = json.load(f)
-
-    data = [e for e in data if e["login"] != entry["login"]]
-    data.append(entry)
-
-    with open("responses.json", "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
-    csv_file = "responses.csv"
-    write_header = not os.path.exists(csv_file) or os.path.getsize(csv_file) == 0
-
-    answers_combined = "; ".join(
-        [f"{a['question']} - {a['answer']}" for a in entry.get("answers", [])]
-    )
-
-    with open(csv_file, "a", newline='', encoding="utf-8") as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=[
-            "login", "age", "sex", "gender", "answers", "timestamp"
-        ])
-        if write_header:
-            writer.writeheader()
-
-        writer.writerow({
-            "login": entry.get("login"),
-            "age": entry.get("demographics", {}).get("age", ""),
-            "sex": entry.get("demographics", {}).get("sex", ""),
-            "gender": entry.get("demographics", {}).get("gender", ""),
-            "answers": answers_combined,
-            "timestamp": entry["timestamp"]
-        })
-
+    # You can implement PostgreSQL logging here if needed later
     return jsonify({"status": "ok"})
-
 
 @app.route("/add-user", methods=["POST"])
 def add_user():
@@ -62,47 +44,30 @@ def add_user():
     if "login" not in new_user or "password" not in new_user:
         return jsonify({"error": "Недостаточно данных"}), 400
 
-    path = "loginData.json"
-
-    if not os.path.exists(path):
-        users = []
-    else:
-        with open(path, "r", encoding="utf-8") as f:
-            try:
-                users = json.load(f)
-            except json.JSONDecodeError:
-                users = []
-
-    for u in users:
-        if u["login"] == new_user["login"]:
-            return jsonify({"error": "Логин уже существует"}), 409
-
-    users.append(new_user)
-
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(users, f, ensure_ascii=False, indent=2)
-
-    return jsonify({"status": "user added", "user": new_user})
-
+    try:
+        with psycopg2.connect(DATABASE_URL) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT * FROM users WHERE login=%s", (new_user["login"],))
+                if cur.fetchone():
+                    return jsonify({"error": "Логин уже существует"}), 409
+                cur.execute("INSERT INTO users (login, password) VALUES (%s, %s)",
+                            (new_user["login"], new_user["password"]))
+                conn.commit()
+        return jsonify({"status": "user added", "user": new_user})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/get-users", methods=["GET"])
 def get_users():
-    path = "loginData.json"
-    if not os.path.exists(path):
-        return make_response(jsonify([]), 200)
-
-    with open(path, "r", encoding="utf-8") as f:
-        try:
-            users = json.load(f)
-        except json.JSONDecodeError:
-            users = []
-
-    response = make_response(jsonify(users), 200)
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    return response
-
+    try:
+        with psycopg2.connect(DATABASE_URL) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT login, password FROM users")
+                users = cur.fetchall()
+        return jsonify([{"login": u[0], "password": u[1]} for u in users])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
+    init_db()
     app.run(host="0.0.0.0", port=5000)
