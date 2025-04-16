@@ -83,6 +83,19 @@ def add_user():
 
     return jsonify({"status": "user added", "user": new_user})
 
+@app.route("/get-users", methods=["GET"])
+def get_users():
+    path = "loginData.json"
+    if not os.path.exists(path):
+        return jsonify([])
+    with open(path, "r", encoding="utf-8") as f:
+        try:
+            users = json.load(f)
+        except json.JSONDecodeError:
+            users = []
+    return jsonify(users)
+
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
