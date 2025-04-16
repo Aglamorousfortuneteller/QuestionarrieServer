@@ -4,39 +4,45 @@ import psycopg2
 import os
 from datetime import datetime
 
-# Flask setup
 app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app)
 
-# PostgreSQL connection config
-DATABASE_URL = os.environ.get("DATABASE_URL") or "postgresql://questionnaire_db_26yt_user:U0G9XSuvfPNWmG3bDofMPJu3tzFwcBAO@dpg-cvvomg3uibrs73blgfb0-a/questionnaire_db_26yt"
+DB_URL = os.getenv("DATABASE_URL") or "postgresql://questionnaire_db_26yt_user:U0G9XSuvfPNWmG3bDofMPJu3tzFwcBAO@dpg-cvvomg3uibrs73blgfb0-a/questionnaire_db_26yt"
 
-# Ensure the user table exists
+# Initialize DB and ensure admin exists
 def init_db():
-    with psycopg2.connect(DATABASE_URL) as conn:
-        with conn.cursor() as cur:
-            cur.execute('''
-                CREATE TABLE IF NOT EXISTS users (
-                    login TEXT PRIMARY KEY,
-                    password TEXT NOT NULL
-                );
-            ''')
-            # Ensure admin exists
-            cur.execute("SELECT * FROM users WHERE login='admin'")
-            if not cur.fetchone():
-                cur.execute("INSERT INTO users (login, password) VALUES (%s, %s)", ('admin', 'letmein'))
+    conn = psycopg2.connect(DB_URL)
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            login TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL
+        )
+    """)
+    conn.commit()
+    cur.execute("SELECT * FROM users WHERE login = 'admin'")
+    if not cur.fetchone():
+        cur.execute("INSERT INTO users (login, password) VALUES (%s, %s)", ("admin", "letmein"))
         conn.commit()
+    cur.close()
+    conn.close()
+
+init_db()
 
 @app.route("/")
 def index():
     return send_from_directory('.', 'index.html')
 
-@app.route("/submit", methods=["POST"])
-def save_response():
-    entry = request.json
-    entry["timestamp"] = datetime.now().isoformat()
-    # You can implement PostgreSQL logging here if needed later
-    return jsonify({"status": "ok"})
+@app.route("/get-users", methods=["GET"])
+def get_users():
+    conn = psycopg2.connect(DB_URL)
+    cur = conn.cursor()
+    cur.execute("SELECT login, password FROM users")
+    users = [{"login": row[0], "password": row[1]} for row in cur.fetchall()]
+    cur.close()
+    conn.close()
+    return jsonify(users)
 
 @app.route("/add-user", methods=["POST"])
 def add_user():
@@ -44,30 +50,25 @@ def add_user():
     if "login" not in new_user or "password" not in new_user:
         return jsonify({"error": "Недостаточно данных"}), 400
 
-    try:
-        with psycopg2.connect(DATABASE_URL) as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT * FROM users WHERE login=%s", (new_user["login"],))
-                if cur.fetchone():
-                    return jsonify({"error": "Логин уже существует"}), 409
-                cur.execute("INSERT INTO users (login, password) VALUES (%s, %s)",
-                            (new_user["login"], new_user["password"]))
-                conn.commit()
-        return jsonify({"status": "user added", "user": new_user})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    conn = psycopg2.connect(DB_URL)
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM users WHERE login = %s", (new_user["login"],))
+    if cur.fetchone():
+        cur.close()
+        conn.close()
+        return jsonify({"error": "Логин уже существует"}), 409
 
-@app.route("/get-users", methods=["GET"])
-def get_users():
-    try:
-        with psycopg2.connect(DATABASE_URL) as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT login, password FROM users")
-                users = cur.fetchall()
-        return jsonify([{"login": u[0], "password": u[1]} for u in users])
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    cur.execute("INSERT INTO users (login, password) VALUES (%s, %s)", (new_user["login"], new_user["password"]))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return jsonify({"status": "user added", "user": new_user})
+
+@app.route("/submit", methods=["POST"])
+def save_response():
+    entry = request.json
+    entry["timestamp"] = datetime.now().isoformat()
+    return jsonify({"status": "ok (mocked, DB submission coming soon)"})
 
 if __name__ == "__main__":
-    init_db()
     app.run(host="0.0.0.0", port=5000)
