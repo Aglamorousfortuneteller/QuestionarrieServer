@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, make_response
 from flask_cors import CORS
 import json
 import os
@@ -11,6 +11,7 @@ CORS(app)
 @app.route("/")
 def index():
     return send_from_directory('.', 'index.html')
+
 
 @app.route("/submit", methods=["POST"])
 def save_response():
@@ -83,18 +84,24 @@ def add_user():
 
     return jsonify({"status": "user added", "user": new_user})
 
+
 @app.route("/get-users", methods=["GET"])
 def get_users():
     path = "loginData.json"
     if not os.path.exists(path):
-        return jsonify([])
+        return make_response(jsonify([]), 200)
+
     with open(path, "r", encoding="utf-8") as f:
         try:
             users = json.load(f)
         except json.JSONDecodeError:
             users = []
-    return jsonify(users)
 
+    response = make_response(jsonify(users), 200)
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
 
 
 if __name__ == "__main__":

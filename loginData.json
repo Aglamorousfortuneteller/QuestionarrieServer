@@ -2,5 +2,9 @@
   {
     "login": "admin",
     "password": "letmein"
+  },
+  {
+    "login": "user03_30",
+    "password": "rvr27vgs"
   }
 ]
