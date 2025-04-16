@@ -3,57 +3,54 @@ from flask_cors import CORS
 import psycopg2
 import os
 from datetime import datetime
+import json
 
 app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app)
 
 DB_URL = os.getenv("DATABASE_URL") or "postgresql://questionnaire_db_26yt_user:U0G9XSuvfPNWmG3bDofMPJu3tzFwcBAO@dpg-cvvomg3uibrs73blgfb0-a/questionnaire_db_26yt"
 
-# --- Инициализация базы данных ---
+# Инициализация базы
 def init_db():
     conn = psycopg2.connect(DB_URL)
     cur = conn.cursor()
-    
-    # Таблица пользователей
+
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
             login TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL
-        )
+        );
     """)
-    
-    # Таблица ответов
     cur.execute("""
         CREATE TABLE IF NOT EXISTS responses (
             id SERIAL PRIMARY KEY,
-            login TEXT NOT NULL,
+            login TEXT NOT NULL REFERENCES users(login) ON DELETE CASCADE,
             age TEXT,
             sex TEXT,
             gender TEXT,
-            answers TEXT,
+            answers JSONB,
             timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
+        );
     """)
+    conn.commit()
 
-    # Добавляем admin/letmein, если нет
-    cur.execute("SELECT 1 FROM users WHERE login = 'admin'")
+    # Гарантированный админ
+    cur.execute("SELECT * FROM users WHERE login = 'admin'")
     if not cur.fetchone():
         cur.execute("INSERT INTO users (login, password) VALUES (%s, %s)", ("admin", "letmein"))
+        conn.commit()
 
-    conn.commit()
     cur.close()
     conn.close()
 
 init_db()
 
-# --- Главная страница ---
 @app.route("/")
 def index():
     return send_from_directory('.', 'index.html')
 
-# --- Получение всех пользователей ---
-@app.route("/get-users", methods=["GET"])
+@app.route("/get-users")
 def get_users():
     conn = psycopg2.connect(DB_URL)
     cur = conn.cursor()
@@ -63,7 +60,6 @@ def get_users():
     conn.close()
     return jsonify(users)
 
-# --- Добавление нового пользователя ---
 @app.route("/add-user", methods=["POST"])
 def add_user():
     new_user = request.json
@@ -84,30 +80,32 @@ def add_user():
     conn.close()
     return jsonify({"status": "user added", "user": new_user})
 
-# --- Сохранение ответов ---
 @app.route("/submit", methods=["POST"])
 def save_response():
     entry = request.json
-    login = entry.get("login", "unknown_user")
-    age = entry.get("demographics", {}).get("age", "")
-    sex = entry.get("demographics", {}).get("sex", "")
-    gender = entry.get("demographics", {}).get("gender", "")
-    answers = "; ".join(f"{a['question']} - {a['answer']}" for a in entry.get("answers", []))
+    login = entry.get("login")
+    demographics = entry.get("demographics", {})
+    answers = entry.get("answers", [])
 
     conn = psycopg2.connect(DB_URL)
     cur = conn.cursor()
 
-    # удалим предыдущую запись от этого пользователя
-    cur.execute("DELETE FROM responses WHERE login = %s", (login,))
     cur.execute("""
-        INSERT INTO responses (login, age, sex, gender, answers)
-        VALUES (%s, %s, %s, %s, %s)
-    """, (login, age, sex, gender, answers))
+        INSERT INTO responses (login, age, sex, gender, answers, timestamp)
+        VALUES (%s, %s, %s, %s, %s, %s)
+    """, (
+        login,
+        demographics.get("age"),
+        demographics.get("sex"),
+        demographics.get("gender"),
+        json.dumps(answers, ensure_ascii=False),
+        datetime.now()
+    ))
 
     conn.commit()
     cur.close()
     conn.close()
-    return jsonify({"status": "ok"})
+    return jsonify({"status": "saved"})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
