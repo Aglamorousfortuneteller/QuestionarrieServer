@@ -18,6 +18,11 @@ This project is a lightweight web-based demo version, developed as a prototype d
 - Final screen with "exit" button  
 - All responses saved locally in `responses.json` and `responses.csv`
 
+### 🌐 Language Support
+- Interface and questions available in **English** and **Russian**  
+- Automatically loads `questions_en.json` or `questions_ru.json` based on selected language  
+- Language preference is stored in browser `localStorage`
+
 ### 🔧 Tech stack:
 - HTML / CSS / JavaScript (Frontend)  
 - Python / Flask (Backend)  
@@ -44,6 +49,11 @@ This project is a lightweight web-based demo version, developed as a prototype d
 - Встроенное видео с последующим вопросом  
 - Финальный экран с кнопкой выхода  
 - Сохранение всех ответов в `responses.json` и `responses.csv`
+
+### 🌐 Поддержка языков
+- Интерфейс и вопросы доступны на **русском** и **английском** языках  
+- Загружается `questions_ru.json` или `questions_en.json` в зависимости от выбранного языка  
+- Язык сохраняется в `localStorage` браузера
 
 ### 🔧 Используемые технологии:
 - HTML / CSS / JavaScript (Frontend)  
