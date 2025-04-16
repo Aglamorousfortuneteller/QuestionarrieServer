@@ -8,29 +8,67 @@
 </head>
 <body>
 
-  <script>
-    // Проверка логина
-    if (!localStorage.getItem("userLogin")) {
-      window.location.href = "index.html";
+<script>
+  if (!localStorage.getItem("userLogin")) {
+    window.location.href = "index.html";
+  }
+</script>
+
+<header>
+  <h1 id="title">Институт физиологии им. А.Б. Иванова</h1>
+  <div id="lang-switcher" style="position: absolute; top: 1rem; right: 1.5rem;">
+    <select id="lang-select">
+      <option value="ru">RU</option>
+      <option value="en">EN</option>
+    </select>
+  </div>
+</header>
+
+<main>
+  <div id="question-container" class="question-box">
+    <div id="question-text"></div>
+    <div id="answer-form"></div>
+    <button id="next-button">Далее</button>
+  </div>
+</main>
+
+<footer>
+  © 2020 <span id="footer-text">Институт физиологии им. А.Б. Иванова. Лаборатория физиологии зрения.</span>
+</footer>
+
+<script>
+  const langText = {
+    ru: {
+      title: "Институт физиологии им. А.Б. Иванова",
+      next: "Далее",
+      footer: "Институт физиологии им. А.Б. Иванова. Лаборатория физиологии зрения."
+    },
+    en: {
+      title: "Institute of Physiology A.B. Ivanov",
+      next: "Next",
+      footer: "Institute of Physiology A.B. Ivanov. Laboratory of Visual Physiology."
     }
-  </script>
+  };
 
-  <header>
-    <h1>Институт физиологии им. А.Б. Иванова</h1>
-  </header>
+  function applyLang(lang) {
+    const t = langText[lang];
+    document.getElementById("title").textContent = t.title;
+    document.getElementById("next-button").textContent = t.next;
+    document.getElementById("footer-text").textContent = t.footer;
+  }
 
-  <main>
-    <div id="question-container" class="question-box">
-      <div id="question-text"></div>
-      <div id="answer-form"></div>
-      <button id="next-button">Далее</button>
-    </div>
-  </main>
+  // установка языка при загрузке
+  const savedLang = localStorage.getItem("lang") || "ru";
+  document.getElementById("lang-select").value = savedLang;
+  applyLang(savedLang);
 
-  <footer>
-    © 2020 Институт физиологии им. А.Б. Иванова. Лаборатория физиологии зрения.
-  </footer>
+  document.getElementById("lang-select").addEventListener("change", function () {
+    const newLang = this.value;
+    localStorage.setItem("lang", newLang);
+    location.reload();
+  });
+</script>
 
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>

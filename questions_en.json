@@ -1,0 +1,44 @@
+[
+    {
+      "type": "numeric",
+      "question": "How old are you?"
+    },
+    {
+      "type": "single",
+      "question": "What is your biological sex (assigned at birth)?",
+      "options": ["Male", "Female", "Skip"]
+    },
+    {
+      "type": "single",
+      "question": "How do you identify your gender?",
+      "options": ["Man", "Woman", "Non-binary", "Skip"]
+    },
+    {
+      "type": "single",
+      "question": "What is your preferred color?",
+      "options": ["Red", "Blue", "Green", "Yellow"]
+    },
+    {
+      "type": "multiple",
+      "question": "Which of these subjects have you studied?",
+      "options": ["Mathematics", "Biology", "Physics", "Psychology"]
+    },
+    {
+      "type": "numeric",
+      "question": "How many hours do you usually sleep per day?"
+    },
+    {
+      "type": "text",
+      "question": "What helps you concentrate?"
+    },
+    {
+      "type": "video",
+      "question": "Watch the video and answer the question: what was the video about?",
+      "video": "./video.mp4"
+    },
+    {
+      "type": "message",
+      "question": "Thank you for participating! Your responses have been saved. Click “Exit” to finish."
+    }
+  ]
+  

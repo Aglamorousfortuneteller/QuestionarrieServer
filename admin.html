@@ -61,51 +61,126 @@
       text-decoration: none;
       font-weight: bold;
     }
+    #lang-switcher {
+      position: absolute;
+      right: 2rem;
+      top: 1rem;
+    }
   </style>
 </head>
 <body>
 
-<h1>Генератор логина/пароля</h1>
+<div id="lang-switcher">
+  <select onchange="switchLang(this.value)" id="lang-select">
+    <option value="ru">RU</option>
+    <option value="en">EN</option>
+  </select>
+</div>
+
+<h1 id="page-title">Генератор логина/пароля</h1>
 
 <div class="admin-box">
-  <label for="age">Возраст участника:</label>
+  <label for="age" id="label-age">Возраст участника:</label>
   <input type="number" id="age" min="0">
 
-  <label for="sex">Биологический пол:</label>
+  <label for="sex" id="label-sex">Биологический пол:</label>
   <select id="sex">
     <option>Мужской</option>
     <option>Женский</option>
   </select>
 
-  <button onclick="generate()">Сгенерировать</button>
+  <button onclick="generate()" id="generate-btn">Сгенерировать</button>
 
   <div id="output" class="output" style="display:none;"></div>
 
-  <button onclick="printResult()">Печать</button>
-  <button onclick="sendMail()">Отправить по email</button>
-  <button onclick="saveUser()">Добавить пользователя</button>
+  <button onclick="printResult()" id="print-btn">Печать</button>
+  <button onclick="sendMail()" id="email-btn">Отправить по email</button>
+  <button onclick="saveUser()" id="save-btn">Добавить пользователя</button>
 </div>
 
-<a class="back" href="index.html">Назад к логину</a>
+<a class="back" href="index.html" id="back-link">Назад к логину</a>
 
 <script>
+  const texts = {
+    ru: {
+      title: "Генератор логина/пароля",
+      age: "Возраст участника:",
+      sex: "Биологический пол:",
+      male: "Мужской",
+      female: "Женский",
+      generate: "Сгенерировать",
+      print: "Печать",
+      email: "Отправить по email",
+      save: "Добавить пользователя",
+      back: "Назад к логину",
+      errorAge: "Введите возраст",
+      added: "Пользователь успешно добавлен в loginData.json",
+      exists: "Пользователь с таким логином уже существует",
+      addError: "Ошибка при добавлении пользователя",
+      serverFail: "Не удалось связаться с сервером"
+    },
+    en: {
+      title: "Login/Password Generator",
+      age: "Participant age:",
+      sex: "Biological sex:",
+      male: "Male",
+      female: "Female",
+      generate: "Generate",
+      print: "Print",
+      email: "Send by email",
+      save: "Add user",
+      back: "Back to login",
+      errorAge: "Please enter age",
+      added: "User successfully added to loginData.json",
+      exists: "A user with this login already exists",
+      addError: "Failed to add user",
+      serverFail: "Failed to contact the server"
+    }
+  };
+
+  let currentLang = localStorage.getItem("lang") || "ru";
   let counter = parseInt(localStorage.getItem("adminCounter") || "1");
   let login = "";
   let password = "";
 
+  function applyLang(lang) {
+    const t = texts[lang];
+    document.getElementById("page-title").textContent = t.title;
+    document.getElementById("label-age").textContent = t.age;
+    document.getElementById("label-sex").textContent = t.sex;
+    document.getElementById("sex").options[0].text = t.male;
+    document.getElementById("sex").options[1].text = t.female;
+    document.getElementById("generate-btn").textContent = t.generate;
+    document.getElementById("print-btn").textContent = t.print;
+    document.getElementById("email-btn").textContent = t.email;
+    document.getElementById("save-btn").textContent = t.save;
+    document.getElementById("back-link").textContent = t.back;
+    document.getElementById("lang-select").value = lang;
+  }
+
+  function switchLang(lang) {
+    localStorage.setItem("lang", lang);
+    currentLang = lang;
+    applyLang(lang);
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    applyLang(currentLang);
+  });
+
   function generate() {
     const age = document.getElementById("age").value;
     const sex = document.getElementById("sex").value;
-    if (!age) return alert("Введите возраст");
+    if (!age) return alert(texts[currentLang].errorAge);
 
     login = `user${String(counter).padStart(2, "0")}_${age}`;
     password = Math.random().toString(36).slice(-8);
-    const output = `Логин: ${login}\nПароль: ${password}\nВозраст: ${age}\nПол: ${sex}`;
+    const output = `Login: ${login}\nPassword: ${password}\nAge: ${age}\nSex: ${sex}`;
 
     document.getElementById("output").textContent = output;
     document.getElementById("output").style.display = "block";
 
-    localStorage.setItem("adminCounter", counter + 1);
+    localStorage.setItem("adminCounter", ++counter);
   }
 
   function printResult() {
@@ -120,28 +195,26 @@
   function sendMail() {
     const content = document.getElementById("output").textContent;
     if (!content) return;
-    window.location.href = `mailto:?subject=Данные участника&body=${encodeURIComponent(content)}`;
+    window.location.href = `mailto:?subject=Participant Credentials&body=${encodeURIComponent(content)}`;
   }
 
   function saveUser() {
-    if (!login || !password) return alert("Сначала сгенерируйте логин и пароль");
+    if (!login || !password) return alert(texts[currentLang].generate);
     fetch("http://127.0.0.1:5000/add-user", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ login, password })
     })
     .then(res => {
       if (res.ok) {
-        alert("Пользователь успешно добавлен в loginData.json");
+        alert(texts[currentLang].added);
       } else if (res.status === 409) {
-        alert("Пользователь с таким логином уже существует");
+        alert(texts[currentLang].exists);
       } else {
-        alert("Ошибка при добавлении пользователя");
+        alert(texts[currentLang].addError);
       }
     })
-    .catch(() => alert("Не удалось связаться с сервером"));
+    .catch(() => alert(texts[currentLang].serverFail));
   }
 </script>
 

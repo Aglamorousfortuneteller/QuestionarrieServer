@@ -2,8 +2,24 @@ let currentQuestion = 0;
 let questions = [];
 let responses = [];
 let demographics = {};
+let currentLang = localStorage.getItem("lang") || "ru";
 
-fetch('questions.json')
+const langMap = {
+  ru: {
+    next: "Далее",
+    exit: "Выйти",
+    saved: "Ваши ответы были сохранены.",
+    placeholder: "Введите ваш ответ..."
+  },
+  en: {
+    next: "Next",
+    exit: "Exit",
+    saved: "Your answers have been saved.",
+    placeholder: "Type your answer..."
+  }
+};
+
+fetch(`questions_${currentLang}.json`)
   .then(response => response.json())
   .then(data => {
     questions = data;
@@ -42,65 +58,32 @@ nextButton.addEventListener('click', () => {
     question: q.question,
     answer: answer || "Не указано"
   };
-  responses.push(entry);
+  if (q.type !== 'message') responses.push(entry);
 
   if (currentQuestion === 0) demographics.age = entry.answer;
   if (currentQuestion === 1) demographics.sex = entry.answer;
   if (currentQuestion === 2) demographics.gender = entry.answer;
-  if (q.type === 'message') return;  // не добавлять в responses
 
   currentQuestion++;
 
   if (currentQuestion < questions.length) {
     showQuestion();
   } else {
-    // Показываем экран "Спасибо за участие"
-    questionText.innerHTML = '<h2>Спасибо за участие!</h2>';
-    answerForm.innerHTML = `
-      <p>Ваши ответы были сохранены.</p>
-      <button id="exit-button" style="margin-top: 1rem; padding: 0.8rem 1.5rem; font-weight: bold; border: none; border-radius: 5px; background: #007394; color: white; cursor: pointer;">
-        Выйти
-      </button>
-    `;
-    nextButton.style.display = 'none';
-
-    // Сохраняем ответы
-    fetch("http://localhost:5000/submit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        login: localStorage.getItem("userLogin") || "unknown_user",
-        demographics: demographics,
-        answers: responses
-      })
-    })
-    .then(res => res.json())
-    .then(data => {
-      console.log("Ответ сохранён:", data);
-    })
-    .catch(err => console.error("Ошибка сохранения:", err));
-
-    // Обработчик кнопки "Выйти"
-    setTimeout(() => {
-      const exitButton = document.getElementById("exit-button");
-      if (exitButton) {
-        exitButton.addEventListener("click", () => {
-          localStorage.removeItem("userLogin");
-          window.location.href = "index.html";
-        });
-      }
-    }, 100); // чуть позже, чтобы DOM успел обновиться
+    showFinalMessage();
   }
 });
 
 function showQuestion() {
   const q = questions[currentQuestion];
+  const lang = currentLang;
   questionText.innerHTML = `<h3>${q.question}</h3>`;
   answerForm.innerHTML = '';
+  nextButton.style.display = "inline-block";
+  nextButton.textContent = langMap[lang].next;
 
   if (q.type === 'single') {
     q.options.forEach((opt) => {
-      const value = (opt === "Пропустить") ? "Не указано" : opt;
+      const value = (opt === "Пропустить" || opt === "Skip") ? "Не указано" : opt;
       answerForm.innerHTML += `
         <label>
           <input type="radio" name="answer" value="${value}"> ${opt}
@@ -110,7 +93,7 @@ function showQuestion() {
 
   if (q.type === 'multiple') {
     q.options.forEach((opt) => {
-      const value = (opt === "Пропустить") ? "Не указано" : opt;
+      const value = (opt === "Пропустить" || opt === "Skip") ? "Не указано" : opt;
       answerForm.innerHTML += `
         <label>
           <input type="checkbox" name="answer" value="${value}"> ${opt}
@@ -128,7 +111,7 @@ function showQuestion() {
   if (q.type === 'text') {
     answerForm.innerHTML = `
       <label>
-        <textarea name="answer" rows="4" cols="50"></textarea>
+        <textarea name="answer" rows="4" cols="50" placeholder="${langMap[lang].placeholder}"></textarea>
       </label>`;
   }
 
@@ -139,47 +122,61 @@ function showQuestion() {
         Ваш браузер не поддерживает видео.
       </video>
       <label>
-        <textarea name="answer" rows="4" cols="50" placeholder="Введите ваш ответ..."></textarea>
+        <textarea name="answer" rows="4" cols="50" placeholder="${langMap[lang].placeholder}"></textarea>
       </label>`;
   }
 
   if (q.type === 'message') {
     nextButton.style.display = "none";
     answerForm.innerHTML = `
+      <p>${q.question}</p>
       <button id="exit-button" style="margin-top: 1rem; padding: 0.8rem 1.5rem; font-weight: bold; border: none; border-radius: 5px; background: #007394; color: white; cursor: pointer;">
-        Выйти
-      </button>
-    `;
-  
-    // Только по нажатию "Выйти"
+        ${langMap[lang].exit}
+      </button>`;
+
     setTimeout(() => {
       const exitButton = document.getElementById("exit-button");
       if (exitButton) {
         exitButton.addEventListener("click", () => {
-          fetch("http://localhost:5000/submit", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              login: localStorage.getItem("userLogin") || "unknown_user",
-              demographics: demographics,
-              answers: responses
-            })
-          })
-          .then(res => res.json())
-          .then(data => {
-            console.log("Ответы отправлены:", data);
-            localStorage.removeItem("userLogin");
-            window.location.href = "index.html";
-          })
-          .catch(err => {
-            console.error("Ошибка при сохранении:", err);
-            alert("Ошибка при сохранении данных. Попробуйте ещё раз.");
-          });
+          sendDataAndExit();
         });
       }
     }, 100);
   }
-  
-  
+}
 
+function showFinalMessage() {
+  const lang = currentLang;
+  questionText.innerHTML = `<h2>${langMap[lang].saved}</h2>`;
+  answerForm.innerHTML = `
+    <button id="exit-button" style="margin-top: 1rem; padding: 0.8rem 1.5rem; font-weight: bold; border: none; border-radius: 5px; background: #007394; color: white; cursor: pointer;">
+      ${langMap[lang].exit}
+    </button>`;
+  nextButton.style.display = 'none';
+
+  setTimeout(() => {
+    document.getElementById("exit-button").addEventListener("click", sendDataAndExit);
+  }, 100);
+}
+
+function sendDataAndExit() {
+  fetch("http://localhost:5000/submit", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      login: localStorage.getItem("userLogin") || "unknown_user",
+      demographics: demographics,
+      answers: responses
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    console.log("Ответы отправлены:", data);
+    localStorage.removeItem("userLogin");
+    window.location.href = "index.html";
+  })
+  .catch(err => {
+    console.error("Ошибка при сохранении:", err);
+    alert("Ошибка при сохранении данных. Попробуйте ещё раз.");
+  });
 }

@@ -17,6 +17,7 @@
       padding: 1.5rem;
       text-align: center;
       border-bottom: 1px solid #d0d0d0;
+      position: relative;
     }
     header h1 {
       color: #007394;
@@ -28,6 +29,12 @@
       margin-top: 0.3rem;
       font-weight: normal;
       font-size: 1rem;
+    }
+    #lang-switcher {
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+      font-size: 0.9rem;
     }
     main {
       display: flex;
@@ -92,41 +99,94 @@
 <body>
 
 <header>
-  <h1>Институт физиологии им. А.Б. Иванова</h1>
-  <h2>Доступ к закрытому опроснику</h2>
+  <h1 id="title">Институт физиологии им. А.Б. Иванова</h1>
+  <h2 id="subtitle">Доступ к закрытому опроснику</h2>
+  <div id="lang-switcher">
+    <select onchange="switchLang(this.value)" id="lang-select">
+      <option value="ru">RU</option>
+      <option value="en">EN</option>
+    </select>
+  </div>
 </header>
 
 <main>
   <div class="login-box">
-    <h3>Вход для участников</h3>
+    <h3 id="login-title">Вход для участников</h3>
     <form id="login-form">
-      <label for="username">Ваш идентификатор</label>
+      <label for="username" id="label-username">Ваш идентификатор</label>
       <input type="text" id="username" name="username" required>
 
-      <label for="password">Пароль</label>
+      <label for="password" id="label-password">Пароль</label>
       <input type="password" id="password" name="password">
 
-      <button type="submit">Войти</button>
+      <button type="submit" id="submit-button">Войти</button>
     </form>
   </div>
 </main>
 
 <footer>
-  © 2020 Институт физиологии им. А.Б. Иванова. Лаборатория физиологии зрения.  
+  © 2020 <span id="footer-name">Институт физиологии им. А.Б. Иванова. Лаборатория физиологии зрения.</span>
   <a href="https://www.infran.ru/" target="_blank">www.infran.ru</a>
 </footer>
 
 <script>
+  const texts = {
+    ru: {
+      title: "Институт физиологии им. А.Б. Иванова",
+      subtitle: "Доступ к закрытому опроснику",
+      loginTitle: "Вход для участников",
+      username: "Ваш идентификатор",
+      password: "Пароль",
+      submit: "Войти",
+      footer: "Институт физиологии им. А.Б. Иванова. Лаборатория физиологии зрения.",
+      error: "Неверный логин или пароль",
+      loadError: "Ошибка загрузки базы пользователей"
+    },
+    en: {
+      title: "Institute of Physiology A.B. Ivanov",
+      subtitle: "Access to the confidential questionnaire",
+      loginTitle: "Participant Login",
+      username: "Your ID",
+      password: "Password",
+      submit: "Login",
+      footer: "Institute of Physiology A.B. Ivanov. Laboratory of Visual Physiology.",
+      error: "Incorrect username or password",
+      loadError: "Failed to load user database"
+    }
+  };
+
+  function switchLang(lang) {
+    localStorage.setItem("lang", lang);
+    applyLang(lang);
+  }
+
+  function applyLang(lang) {
+    const t = texts[lang];
+    document.getElementById("lang-select").value = lang;
+    document.getElementById("title").textContent = t.title;
+    document.getElementById("subtitle").textContent = t.subtitle;
+    document.getElementById("login-title").textContent = t.loginTitle;
+    document.getElementById("label-username").textContent = t.username;
+    document.getElementById("label-password").textContent = t.password;
+    document.getElementById("submit-button").textContent = t.submit;
+    document.getElementById("footer-name").textContent = t.footer;
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    const savedLang = localStorage.getItem("lang") || "ru";
+    applyLang(savedLang);
+  });
+
   document.getElementById("login-form").addEventListener("submit", function (e) {
     e.preventDefault();
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
+    const lang = localStorage.getItem("lang") || "ru";
 
     fetch("loginData.json")
       .then((res) => res.json())
       .then((users) => {
         const found = users.find((user) => user.login === username && user.password === password);
-
         if (found) {
           if (username === "admin") {
             window.location.href = "admin.html";
@@ -135,10 +195,10 @@
             window.location.href = "instructions.html";
           }
         } else {
-          alert("Неверный логин или пароль");
+          alert(texts[lang].error);
         }
       })
-      .catch(() => alert("Ошибка загрузки базы пользователей"));
+      .catch(() => alert(texts[lang].loadError));
   });
 </script>
 

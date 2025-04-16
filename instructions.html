@@ -21,12 +21,20 @@
       padding: 1.5rem;
       text-align: center;
       border-bottom: 1px solid #d0d0d0;
+      position: relative;
     }
 
     header h1 {
       color: #007394;
       margin: 0;
       font-size: 1.8rem;
+    }
+
+    #lang-switcher {
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+      font-size: 0.9rem;
     }
 
     main {
@@ -90,25 +98,68 @@
 <body>
 
 <header>
-  <h1>Институт физиологии им. А.Б. Иванова</h1>
+  <h1 id="title">Институт физиологии им. А.Б. Иванова</h1>
+  <div id="lang-switcher">
+    <select onchange="switchLang(this.value)">
+      <option value="ru">RU</option>
+      <option value="en">EN</option>
+    </select>
+  </div>
 </header>
 
 <main>
   <div class="instruction-box">
-    <p>Вы собираетесь пройти серию коротких вопросов, направленных на исследование когнитивных процессов.</p>
-    <p>Пожалуйста, читайте вопросы внимательно и отвечайте честно. На выполнение задания нет строгих ограничений по времени, однако не задерживайтесь слишком долго на одном вопросе.</p>
-    <p>Если какой-то вопрос вызывает затруднение — дайте наиболее подходящий ответ или пропустите, если это предусмотрено.</p>
+    <p id="p1">Вы собираетесь пройти серию коротких вопросов, направленных на исследование когнитивных процессов.</p>
+    <p id="p2">Пожалуйста, читайте вопросы внимательно и отвечайте честно. На выполнение задания нет строгих ограничений по времени, однако не задерживайтесь слишком долго на одном вопросе.</p>
+    <p id="p3">Если какой-то вопрос вызывает затруднение — дайте наиболее подходящий ответ или пропустите, если это предусмотрено.</p>
 
     <form action="questionnaire.html">
-      <button type="submit">Начать</button>
+      <button type="submit" id="start-button">Начать</button>
     </form>
   </div>
 </main>
 
 <footer>
-  © 2020 Институт физиологии им. А.Б. Иванова. Лаборатория физиологии зрения.  
+  © 2020 <span id="footer-text">Институт физиологии им. А.Б. Иванова. Лаборатория физиологии зрения.</span>  
   <a href="https://www.infran.ru/" target="_blank">www.infran.ru</a>
 </footer>
+
+<script>
+  const texts = {
+    ru: {
+      title: "Институт физиологии им. А.Б. Иванова",
+      p1: "Вы собираетесь пройти серию коротких вопросов, направленных на исследование когнитивных процессов.",
+      p2: "Пожалуйста, читайте вопросы внимательно и отвечайте честно. На выполнение задания нет строгих ограничений по времени, однако не задерживайтесь слишком долго на одном вопросе.",
+      p3: "Если какой-то вопрос вызывает затруднение — дайте наиболее подходящий ответ или пропустите, если это предусмотрено.",
+      start: "Начать",
+      footer: "Институт физиологии им. А.Б. Иванова. Лаборатория физиологии зрения."
+    },
+    en: {
+      title: "Institute of Physiology A.B. Ivanov",
+      p1: "You are about to complete a short questionnaire designed to assess cognitive processes.",
+      p2: "Please read each question carefully and respond honestly. There is no strict time limit, but avoid spending too long on any one question.",
+      p3: "If you find a question difficult, answer as best as you can or skip it if allowed.",
+      start: "Start",
+      footer: "Institute of Physiology A.B. Ivanov. Laboratory of Visual Physiology."
+    }
+  };
+
+  function switchLang(lang) {
+    localStorage.setItem("lang", lang);
+    const t = texts[lang];
+    document.getElementById("title").textContent = t.title;
+    document.getElementById("p1").textContent = t.p1;
+    document.getElementById("p2").textContent = t.p2;
+    document.getElementById("p3").textContent = t.p3;
+    document.getElementById("start-button").textContent = t.start;
+    document.getElementById("footer-text").textContent = t.footer;
+  }
+
+  // Устанавливаем язык при загрузке
+  const savedLang = localStorage.getItem("lang") || "ru";
+  document.querySelector('#lang-switcher select').value = savedLang;
+  switchLang(savedLang);
+</script>
 
 </body>
 </html>
