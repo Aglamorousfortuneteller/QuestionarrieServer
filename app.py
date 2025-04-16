@@ -107,5 +107,26 @@ def save_response():
     conn.close()
     return jsonify({"status": "saved"})
 
+@app.route("/responses", methods=["GET"])
+def get_all_responses():
+    conn = psycopg2.connect(DB_URL)
+    cur = conn.cursor()
+    cur.execute("SELECT login, demographics, answers, timestamp FROM responses ORDER BY id DESC")
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    result = []
+    for row in rows:
+        result.append({
+            "login": row[0],
+            "demographics": row[1],
+            "answers": row[2],
+            "timestamp": row[3]
+        })
+    return jsonify(result)
+
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
