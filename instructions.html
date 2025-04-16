@@ -2,105 +2,22 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Инструкция</title>
+  <title>Опросник</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: "Georgia", serif;
-      background: #ffffff;
-      color: #2a2a2a;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
-    header {
-      background: #f9f9f9;
-      padding: 1.5rem;
-      text-align: center;
-      border-bottom: 1px solid #d0d0d0;
-      position: relative;
-    }
-
-    header h1 {
-      color: #007394;
-      margin: 0;
-      font-size: 1.8rem;
-    }
-
-    #lang-switcher {
-      position: absolute;
-      top: 1rem;
-      right: 1.5rem;
-      font-size: 0.9rem;
-    }
-
-    main {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-    }
-
-    .instruction-box {
-      max-width: 700px;
-      background: #f5f5f5;
-      padding: 2rem;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-      font-size: 1.1rem;
-      line-height: 1.7;
-    }
-
-    .instruction-box p {
-      margin-bottom: 1.2rem;
-      text-align: justify;
-    }
-
-    .instruction-box form {
-      text-align: center;
-      margin-top: 2rem;
-    }
-
-    .instruction-box button {
-      background: #007394;
-      color: white;
-      border: none;
-      padding: 1rem 2rem;
-      border-radius: 5px;
-      font-weight: bold;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-
-    .instruction-box button:hover {
-      background: #005c73;
-    }
-
-    footer {
-      text-align: center;
-      font-size: 0.8rem;
-      color: #888;
-      padding: 1rem;
-      border-top: 1px solid #e0e0e0;
-    }
-
-    footer a {
-      color: #888;
-      text-decoration: none;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+<script>
+  if (!localStorage.getItem("userLogin")) {
+    window.location.href = "index.html";
+  }
+</script>
+
 <header>
   <h1 id="title">Институт физиологии им. А.Б. Иванова</h1>
-  <div id="lang-switcher">
-    <select onchange="switchLang(this.value)">
+  <div id="lang-switcher" style="position: absolute; top: 1rem; right: 1.5rem;">
+    <select id="lang-select">
       <option value="ru">RU</option>
       <option value="en">EN</option>
     </select>
@@ -108,58 +25,53 @@
 </header>
 
 <main>
-  <div class="instruction-box">
-    <p id="p1">Вы собираетесь пройти серию коротких вопросов, направленных на исследование когнитивных процессов.</p>
-    <p id="p2">Пожалуйста, читайте вопросы внимательно и отвечайте честно. На выполнение задания нет строгих ограничений по времени, однако не задерживайтесь слишком долго на одном вопросе.</p>
-    <p id="p3">Если какой-то вопрос вызывает затруднение — дайте наиболее подходящий ответ или пропустите, если это предусмотрено.</p>
-
-    <form action="questionnaire.html">
-      <button type="submit" id="start-button">Начать</button>
-    </form>
+  <div id="question-container" class="question-box">
+    <div id="question-text"></div>
+    <div id="answer-form"></div>
+    <button id="next-button">Далее</button>
   </div>
 </main>
 
 <footer>
-  © 2020 <span id="footer-text">Институт физиологии им. А.Б. Иванова. Лаборатория физиологии зрения.</span>  
-  <a href="https://www.infran.ru/" target="_blank">www.infran.ru</a>
+  © 2020 <span id="footer-text">Институт физиологии им. А.Б. Иванова. Лаборатория физиологии зрения.</span>
 </footer>
 
 <script>
-  const texts = {
+  const langText = {
     ru: {
       title: "Институт физиологии им. А.Б. Иванова",
-      p1: "Вы собираетесь пройти серию коротких вопросов, направленных на исследование когнитивных процессов.",
-      p2: "Пожалуйста, читайте вопросы внимательно и отвечайте честно. На выполнение задания нет строгих ограничений по времени, однако не задерживайтесь слишком долго на одном вопросе.",
-      p3: "Если какой-то вопрос вызывает затруднение — дайте наиболее подходящий ответ или пропустите, если это предусмотрено.",
-      start: "Начать",
+      next: "Далее",
+      exit: "Выйти",
+      saved: "Ваши ответы были сохранены.",
       footer: "Институт физиологии им. А.Б. Иванова. Лаборатория физиологии зрения."
     },
     en: {
       title: "Institute of Physiology A.B. Ivanov",
-      p1: "You are about to complete a short questionnaire designed to assess cognitive processes.",
-      p2: "Please read each question carefully and respond honestly. There is no strict time limit, but avoid spending too long on any one question.",
-      p3: "If you find a question difficult, answer as best as you can or skip it if allowed.",
-      start: "Start",
+      next: "Next",
+      exit: "Exit",
+      saved: "Your answers have been saved.",
       footer: "Institute of Physiology A.B. Ivanov. Laboratory of Visual Physiology."
     }
   };
 
-  function switchLang(lang) {
-    localStorage.setItem("lang", lang);
-    const t = texts[lang];
+  function applyLang(lang) {
+    const t = langText[lang];
     document.getElementById("title").textContent = t.title;
-    document.getElementById("p1").textContent = t.p1;
-    document.getElementById("p2").textContent = t.p2;
-    document.getElementById("p3").textContent = t.p3;
-    document.getElementById("start-button").textContent = t.start;
+    document.getElementById("next-button").textContent = t.next;
     document.getElementById("footer-text").textContent = t.footer;
   }
 
-  // Устанавливаем язык при загрузке
   const savedLang = localStorage.getItem("lang") || "ru";
-  document.querySelector('#lang-switcher select').value = savedLang;
-  switchLang(savedLang);
+  document.getElementById("lang-select").value = savedLang;
+  applyLang(savedLang);
+
+  document.getElementById("lang-select").addEventListener("change", function () {
+    const newLang = this.value;
+    localStorage.setItem("lang", newLang);
+    location.reload();
+  });
 </script>
 
+<script src="script.js"></script>
 </body>
 </html>

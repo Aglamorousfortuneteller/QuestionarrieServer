@@ -160,7 +160,7 @@ function showFinalMessage() {
 }
 
 function sendDataAndExit() {
-  fetch("http://localhost:5000/submit", {
+  fetch("/submit", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

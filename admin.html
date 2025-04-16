@@ -114,7 +114,7 @@
       save: "Добавить пользователя",
       back: "Назад к логину",
       errorAge: "Введите возраст",
-      added: "Пользователь успешно добавлен в loginData.json",
+      added: "Пользователь успешно добавлен в базу данных",
       exists: "Пользователь с таким логином уже существует",
       addError: "Ошибка при добавлении пользователя",
       serverFail: "Не удалось связаться с сервером"
@@ -131,13 +131,14 @@
       save: "Add user",
       back: "Back to login",
       errorAge: "Please enter age",
-      added: "User successfully added to loginData.json",
+      added: "User successfully added to database",
       exists: "A user with this login already exists",
       addError: "Failed to add user",
       serverFail: "Failed to contact the server"
     }
   };
 
+  const API_BASE = location.hostname.includes("localhost") ? "http://127.0.0.1:5000" : "https://questionarrieserverinstitute.onrender.com";
   let currentLang = localStorage.getItem("lang") || "ru";
   let counter = parseInt(localStorage.getItem("adminCounter") || "1");
   let login = "";
@@ -200,7 +201,7 @@
 
   function saveUser() {
     if (!login || !password) return alert(texts[currentLang].generate);
-    fetch("http://127.0.0.1:5000/add-user", {
+    fetch(`${API_BASE}/add-user`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ login, password })

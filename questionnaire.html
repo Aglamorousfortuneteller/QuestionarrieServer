@@ -41,11 +41,15 @@
     ru: {
       title: "Институт физиологии им. А.Б. Иванова",
       next: "Далее",
+      exit: "Выйти",
+      saved: "Ваши ответы были сохранены.",
       footer: "Институт физиологии им. А.Б. Иванова. Лаборатория физиологии зрения."
     },
     en: {
       title: "Institute of Physiology A.B. Ivanov",
       next: "Next",
+      exit: "Exit",
+      saved: "Your answers have been saved.",
       footer: "Institute of Physiology A.B. Ivanov. Laboratory of Visual Physiology."
     }
   };
@@ -57,7 +61,6 @@
     document.getElementById("footer-text").textContent = t.footer;
   }
 
-  // установка языка при загрузке
   const savedLang = localStorage.getItem("lang") || "ru";
   document.getElementById("lang-select").value = savedLang;
   applyLang(savedLang);

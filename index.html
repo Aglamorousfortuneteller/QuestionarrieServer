@@ -183,7 +183,7 @@
     const password = document.getElementById("password").value.trim();
     const lang = localStorage.getItem("lang") || "ru";
 
-    fetch("https://questionarrieserverinstitute.onrender.com/get-users?t=" + Date.now())
+    fetch("/get-users?t=" + Date.now())
       .then((res) => res.json())
       .then((users) => {
         const found = users.find((user) => user.login === username && user.password === password);
