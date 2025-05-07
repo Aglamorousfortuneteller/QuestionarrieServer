@@ -1,8 +1,8 @@
-# 🧠 QuestionarrieCognitiveTemplate
+# 🧠 QuestionarrieCognitiveServer
 
 ## Description (English)
 
-**Local template for a cognitive study questionnaire.**  
+**Sever template for a cognitive study questionnaire.**  
 This project is a lightweight web-based demo version, developed as a prototype during research work in a neuroscience and physiology lab (unnamed for anonymity).
 
 ### ✨ Features:
@@ -28,13 +28,13 @@ This project is a lightweight web-based demo version, developed as a prototype d
 - Python / Flask (Backend)  
 - JSON & CSV as storage formats
 
-> This version runs fully offline. The next step will be integration with a remote database and analytics dashboard.
+> This version runs online. The next step will be fixing the responce database and analytics dashboard.
 
 ---
 
 ## Описание (на русском)
 
-**Локальная болванка опросника для когнитивного исследования.**  
+**Серверная болванка опросника для когнитивного исследования.**  
 Проект представляет собой лёгкую веб-реализацию, разработанную в рамках научной деятельности в лаборатории нейрофизиологии (название не указывается по этическим соображениям).
 
 ### ✨ Возможности:
@@ -60,4 +60,4 @@ This project is a lightweight web-based demo version, developed as a prototype d
 - Python / Flask (Backend)  
 - Локальное хранение в формате JSON и CSV
 
-> Эта версия полностью автономна. Следующим этапом станет интеграция с удалённой БД и системой анализа.
+> Эта версия разворачивается на сервере. Следующим этапом станет исправление проблемы доступа удалённой БД и создание системы анализа.
